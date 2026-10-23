@@ -1,0 +1,15 @@
+# Fast end-to-end check (~1 min): small batch of every workload.
+name: smoke
+data: {source: synthetic, start: "2018-01-01", end: "2023-12-31"}
+hypotheses: {n_hypotheses: 10}
+statistical:
+  enabled: true
+  algorithms: [ols_robust, hit_rate_classical, {name: hit_rate_qae, params: {n_powers: 4}}]
+predictive:
+  enabled: true
+  algorithms: [baseline_mean, linear, {name: quantum_kernel, params: {max_train_samples: 150}}, {name: vqc, params: {epochs: 3, max_train_samples: 200}}]
+montecarlo:
+  enabled: true
+  algorithms: [mc_plain, {name: qae_mlae, params: {n_qubits: 4, n_powers: 4}}]
+montecarlo_tasks: {n_tasks: 4}
+run: {repetitions: 2, warmups: 1, scaling_N: [5, 10], db_path: results/smoke.sqlite}

@@ -1,0 +1,30 @@
+# Precision study (proposal 6.4): the same Monte Carlo tasks at several precision
+# settings per method, to trace accuracy-cost frontiers rather than compare at equal
+# sample/shot counts. Repeating an algorithm with different params creates separate
+# configs (labelled algorithm#hash in reports).
+name: mc-precision-study
+data: {source: synthetic}
+statistical: {enabled: false}
+predictive: {enabled: false}
+montecarlo:
+  enabled: true
+  algorithms:
+    - {name: mc_plain, params: {n_paths: 1000}}
+    - {name: mc_plain, params: {n_paths: 10000}}
+    - {name: mc_plain, params: {n_paths: 100000}}
+    - {name: mc_plain, params: {n_paths: 1000000}}
+    - {name: mc_sobol, params: {log2_points: 10}}
+    - {name: mc_sobol, params: {log2_points: 14}}
+    - {name: discretized_exact, params: {n_qubits: 6}}
+    - {name: qae_mlae, params: {n_qubits: 6, shots: 50, n_powers: 3}}
+    - {name: qae_mlae, params: {n_qubits: 6, shots: 50, n_powers: 5}}
+    - {name: qae_mlae, params: {n_qubits: 6, shots: 50, n_powers: 7}}
+    - {name: qae_canonical, params: {n_qubits: 6, estimation_qubits: 4, shots: 50}}
+    - {name: qae_canonical, params: {n_qubits: 6, estimation_qubits: 6, shots: 50}}
+montecarlo_tasks:
+  n_tasks: 10
+  payoff: digital
+run:
+  repetitions: 5
+  scaling_N: [10]
+  db_path: results/qquant.sqlite

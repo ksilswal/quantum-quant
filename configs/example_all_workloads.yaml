@@ -1,0 +1,75 @@
+# Full example: 50 NVDA hypotheses x three workloads, scaling over N in {10, 25, 50}.
+# Switch data.source to "yfinance" for real NVDA data (pip install -e ".[data]").
+name: nvda-all-workloads
+description: >
+  Baseline benchmark across statistical testing, predictive training and Monte Carlo.
+  Quantum methods run on the PennyLane default.qubit simulator (no physical QPU).
+
+data:
+  source: synthetic          # synthetic | yfinance | csv
+  ticker: NVDA
+  benchmarks: [QQQ]
+  start: "2015-01-01"
+  end: "2025-12-31"
+  cache_dir: data_cache
+
+hypotheses:
+  families: [momentum, mean_reversion, volatility, volume, relative_strength]
+  lookbacks: [5, 10, 21, 63, 126]
+  horizons: [1, 5]           # 5 x 5 x 2 = 50 hypotheses
+  n_hypotheses: null
+
+statistical:
+  enabled: true
+  algorithms:
+    - name: ols_robust
+    - name: block_bootstrap_ols
+      params: {n_boot: 1000}
+    - name: block_permutation
+      params: {n_perm: 1000}
+    - name: hit_rate_classical
+    - name: hit_rate_qae
+      params: {state_prep: amplitude_rotation, shots: 100, n_powers: 6}
+
+predictive:
+  enabled: true
+  algorithms:
+    - name: baseline_mean
+    - name: linear
+    - name: kernel_ridge_rbf
+      params: {max_train_samples: 400}
+    - name: quantum_kernel
+      params: {max_train_samples: 400, reps: 2}
+    - name: vqc
+      params: {epochs: 15, layers: 2, max_train_samples: 500}
+
+montecarlo:
+  enabled: true
+  algorithms:
+    - name: mc_plain
+      params: {n_paths: 100000}
+    - name: mc_sobol
+    - name: discretized_exact
+      params: {n_qubits: 5}
+    - name: qae_mlae
+      params: {n_qubits: 5, shots: 100, n_powers: 6}
+    - name: qae_canonical
+      params: {n_qubits: 5, estimation_qubits: 6, shots: 100}
+
+montecarlo_tasks:
+  n_tasks: 10
+  moneyness: [0.9, 0.95, 1.0, 1.05, 1.1]
+  horizons_days: [21, 63]
+  payoff: capped_call
+  cap_fraction: 0.25
+
+run:
+  seed: 1234
+  repetitions: 3
+  warmups: 1
+  workers: 1
+  scaling_N: [10, 25, 50]
+  backend: default.qubit
+  max_qubits: 14
+  db_path: results/qquant.sqlite
+  export_format: csv

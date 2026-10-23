@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+
+# Local experiment artifacts (snapshots are content-hashed; regenerate or archive separately)
+data_cache/
+results/
+*.sqlite
+*.db
